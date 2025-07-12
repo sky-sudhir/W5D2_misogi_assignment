@@ -1,354 +1,212 @@
-# Financial Intelligence RAG System
+# 📈 AI Stock Market Chat Agent
 
-A production-scale Financial Intelligence RAG (Retrieval-Augmented Generation) System designed to handle concurrent queries on corporate financial reports and earnings data with Redis caching and OpenAI API integration.
+A real-time stock market chat application powered by Groq LLMs, Alpha Vantage stock data, and NewsAPI. Users can interact with the AI via a Streamlit interface to get real-time stock updates, news, and personalized investment recommendations.
 
 ## 🚀 Features
 
-### Core Capabilities
-- **Financial Document Processing**: Enhanced PDF and CSV parsing for financial reports
-- **Intelligent Query Processing**: Financial-specific RAG pipeline with Google Gemini
-- **Real-time Caching**: Redis-based caching with TTL management (1h real-time, 24h historical)
-- **Concurrent Request Handling**: Supports 200+ concurrent users with <2s response time
-- **Background Processing**: Celery-based async document ingestion and analysis
-- **Performance Monitoring**: LangSmith integration and Prometheus metrics
+- **Interactive Chat Interface**: Streamlit-based chat UI with streaming responses
+- **Real-time Stock Data**: Live stock prices, historical data, and market metrics
+- **Financial News Integration**: Latest market news with sentiment analysis
+- **AI-Powered Recommendations**: Buy/Hold/Sell decisions based on data analysis
+- **RAG (Retrieval-Augmented Generation)**: Enhanced responses using vector search
+- **Rate Limiting**: Built-in protection against API abuse
+- **Monitoring & Analytics**: LangSmith integration for performance tracking
 
-### Production Features
-- **Rate Limiting**: Per-API-key rate limiting and request throttling
-- **Load Balancing**: Async FastAPI with connection pooling
-- **Monitoring**: Real-time system metrics and performance dashboards
-- **Scalability**: Horizontal scaling support with Redis cluster
-- **Security**: JWT authentication, CORS, and input validation
+## 🛠️ Tech Stack
 
-## 📋 Requirements
+| Component | Technology |
+|-----------|------------|
+| Frontend | Streamlit |
+| Backend | Python, LangChain |
+| LLM | Groq (Mixtral-8x7B) |
+| Vector Store | ChromaDB |
+| Embeddings | SentenceTransformers |
+| Stock Data | Alpha Vantage API |
+| News Data | NewsAPI |
+| Rate Limiting | SlowAPI |
+| Monitoring | LangSmith |
+
+## 📋 Prerequisites
 
 - Python 3.8+
-- Redis Server
-- Google Gemini API Key
-- LangSmith API Key (optional)
-- ChromaDB (local or cloud)
+- API Keys for:
+  - [Groq](https://groq.com/) - For LLM inference
+  - [Alpha Vantage](https://www.alphavantage.co/) - For stock data
+  - [NewsAPI](https://newsapi.org/) - For financial news
+  - [LangSmith](https://smith.langchain.com/) - For monitoring (optional)
 
-## 🛠️ Installation
+## 🔧 Installation
 
-### 1. Clone and Setup
-```bash
-git clone <repository-url>
-cd financial-rag-system
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd stock-market-chat-agent
+   ```
 
-### 2. Environment Configuration
-```bash
-# Copy the example environment file
-cp backend/env_example.txt .env
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-# Edit .env with your configuration
-# Required settings:
-# - GOOGLE_API_KEY: Your Google Gemini API key
-# - REDIS_URL: Redis connection string
-# - LANGSMITH_API_KEY: LangSmith API key (optional)
-```
+3. **Set up environment variables**:
+   ```bash
+   cp env.example .env
+   ```
+   
+   Edit `.env` with your API keys:
+   ```env
+   GROQ_API_KEY=your_groq_api_key_here
+   ALPHA_VANTAGE_API_KEY=your_alpha_vantage_api_key_here
+   NEWS_API_KEY=your_news_api_key_here
+   
+   # Optional: LangSmith monitoring
+   LANGCHAIN_TRACING_V2=true
+   LANGCHAIN_API_KEY=your_langsmith_api_key_here
+   LANGCHAIN_PROJECT=stock-market-agent
+   ```
 
-### 3. Start Redis Server
-```bash
-# Option 1: Docker
-docker run -d -p 6379:6379 redis:alpine
+## 🚀 Usage
 
-# Option 2: Local installation
-redis-server
-```
+1. **Start the application**:
+   ```bash
+   streamlit run streamlit_app.py
+   ```
 
-### 4. Start the Application
-```bash
-# Development mode
-python backend/main.py
+2. **Open your browser** and navigate to `http://localhost:8501`
 
-# Production mode
-gunicorn backend.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
-```
+3. **Start chatting** with the AI about stocks, markets, and investments!
 
-### 5. Start Background Workers (Optional)
-```bash
-# Start Celery worker
-celery -A backend.celery_app worker --loglevel=info
+## 💬 Example Queries
 
-# Start Celery beat (for scheduled tasks)
-celery -A backend.celery_app beat --loglevel=info
-```
+- "What's the current price of Apple stock?"
+- "Should I invest in Tesla right now?"
+- "What are the latest market trends?"
+- "Compare Microsoft and Google stocks"
+- "Give me news about Amazon"
+- "Is it a good time to buy Netflix?"
 
-## 📊 API Endpoints
-
-### Core Endpoints
-
-#### Query Financial Data
-```http
-POST /query
-Content-Type: application/json
-
-{
-  "question": "What is Apple's revenue for 2023?",
-  "use_cache": true,
-  "is_realtime": true
-}
-```
-
-#### Financial Metrics
-```http
-POST /financial-metrics
-Content-Type: application/json
-
-{
-  "company": "Apple",
-  "metrics": ["revenue", "profit", "assets", "liabilities"]
-}
-```
-
-#### Company Comparison
-```http
-POST /company-comparison
-Content-Type: application/json
-
-{
-  "companies": ["Apple", "Microsoft", "Google"],
-  "metrics": ["revenue", "profit_margin", "market_cap"]
-}
-```
-
-#### Document Ingestion
-```http
-POST /ingest
-Content-Type: multipart/form-data
-
-file: <financial_report.pdf>
-```
-
-### Monitoring Endpoints
-
-#### Health Check
-```http
-GET /health
-```
-
-#### Cache Statistics
-```http
-GET /cache/stats
-```
-
-#### Prometheus Metrics
-```http
-GET /metrics
-```
-
-## 🗂️ Project Structure
+## 🏗️ Architecture
 
 ```
-financial-rag-system/
-├── backend/
-│   ├── cache/
-│   │   └── redis_client.py      # Redis caching layer
-│   ├── config.py                # Configuration management
-│   ├── main.py                  # FastAPI application
-│   ├── rag_pipeline.py          # RAG processing pipeline
-│   ├── ingest.py                # Document ingestion
-│   ├── chroma_client.py         # Vector database client
-│   ├── celery_app.py            # Celery configuration
-│   ├── tasks.py                 # Background tasks
-│   ├── load_testing.py          # Load testing script
-│   └── env_example.txt          # Environment configuration
-├── ui/
-│   └── app.py                   # Streamlit UI
-├── requirements.txt             # Python dependencies
-└── README.md                    # This file
+User (Streamlit Chat)
+        ↓
+Rate Limiter → Agent (LangChain + Groq)
+        ↓              ↑
+    Response    ← RAG System ← Vector Store (ChromaDB)
+                      ↑              ↑
+                 Data Sources → News + Stock Data
+                      ↑
+                 Monitoring (LangSmith)
 ```
 
-## 🧪 Testing
+## 📁 Project Structure
 
-### Load Testing
-```bash
-# Run load test with 200 concurrent users for 10 minutes
-python backend/load_testing.py
-
-# Or use Locust directly
-locust -f backend/load_testing.py --host http://localhost:8000 --users 200 --spawn-rate 10 --run-time 10m
+```
+├── streamlit_app.py      # Main Streamlit application
+├── config.py             # Configuration management
+├── data_sources.py       # Stock & news data integration
+├── vector_store.py       # ChromaDB vector store
+├── rag_agent.py          # LangChain RAG agent
+├── rate_limiter.py       # Rate limiting functionality
+├── monitoring.py         # LangSmith monitoring
+├── requirements.txt      # Python dependencies
+├── env.example          # Environment variables template
+└── README.md            # This file
 ```
 
-### Unit Tests
-```bash
-# Run tests
-pytest
-
-# Run with coverage
-pytest --cov=backend
-```
-
-## 📈 Performance Targets
-
-- **Response Time**: < 2 seconds average
-- **Concurrent Users**: 200+ simultaneous users
-- **Cache Hit Ratio**: > 70%
-- **Uptime**: 99.9%
-- **Error Rate**: < 5%
-
-## 🔧 Configuration
+## ⚙️ Configuration
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `GOOGLE_API_KEY` | Google Gemini API key | Required |
-| `REDIS_URL` | Redis connection string | `redis://localhost:6379/0` |
-| `LANGSMITH_API_KEY` | LangSmith monitoring key | Optional |
-| `RATE_LIMIT_REQUESTS` | Requests per hour | 100 |
-| `MAX_CONCURRENT_REQUESTS` | Max concurrent requests | 200 |
-| `CACHE_TTL_REALTIME` | Real-time cache TTL (seconds) | 3600 |
-| `CACHE_TTL_HISTORICAL` | Historical cache TTL (seconds) | 86400 |
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `GROQ_API_KEY` | Groq API key for LLM | Yes |
+| `ALPHA_VANTAGE_API_KEY` | Alpha Vantage API key | Yes |
+| `NEWS_API_KEY` | NewsAPI key | Yes |
+| `LANGCHAIN_API_KEY` | LangSmith API key | No |
+| `NEWS_REFRESH_INTERVAL` | News refresh interval (seconds) | No |
+| `STOCK_REFRESH_INTERVAL` | Stock refresh interval (seconds) | No |
+| `MAX_REQUESTS_PER_MINUTE` | Rate limit per minute | No |
 
-### Redis Configuration
+### Default Settings
 
-```bash
-# Redis databases used:
-# 0: Main cache
-# 1: Celery broker
-# 2: Celery results
-```
+- News refresh: Every 1 hour
+- Stock refresh: Every 30 seconds
+- Rate limit: 10 requests per minute
+- Vector store: Local ChromaDB
 
-## 🚀 Deployment
+## 🔒 Rate Limiting
 
-### Docker Deployment
-```bash
-# Build image
-docker build -t financial-rag-system .
+The application includes built-in rate limiting to prevent API abuse:
 
-# Run with docker-compose
-docker-compose up -d
-```
-
-### Production Deployment
-```bash
-# Install production dependencies
-pip install gunicorn
-
-# Start with multiple workers
-gunicorn backend.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
-
-# Start with Celery workers
-celery -A backend.celery_app worker --loglevel=info --concurrency=4
-```
+- **Streamlit Interface**: 10 requests per minute per session
+- **Visual Feedback**: Progress bar showing remaining requests
+- **Graceful Degradation**: Clear error messages when limits are exceeded
 
 ## 📊 Monitoring
 
-### Prometheus Metrics
-- Request count and duration
-- Cache hit/miss ratios
-- Active connections
-- Query processing time
+LangSmith integration provides:
 
-### LangSmith Integration
-- Request tracing
-- Performance monitoring
-- Error tracking
-- Response quality metrics
+- **Request Tracking**: All agent interactions logged
+- **Performance Metrics**: Response times and success rates
+- **Tool Usage Analytics**: Which tools are used most frequently
+- **Error Monitoring**: Failed requests and error patterns
 
-### Health Checks
-- Application health: `GET /health`
-- Cache statistics: `GET /cache/stats`
-- Metrics endpoint: `GET /metrics`
+## 🛡️ Security Considerations
 
-## 🔍 Usage Examples
-
-### Basic Financial Query
-```python
-import requests
-
-response = requests.post("http://localhost:8000/query", json={
-    "question": "What was Apple's revenue in Q3 2023?",
-    "use_cache": True
-})
-
-print(response.json())
-```
-
-### Company Comparison
-```python
-response = requests.post("http://localhost:8000/company-comparison", json={
-    "companies": ["Apple", "Microsoft"],
-    "metrics": ["revenue", "profit_margin"]
-})
-
-print(response.json())
-```
-
-### Document Upload
-```python
-with open("financial_report.pdf", "rb") as f:
-    response = requests.post("http://localhost:8000/ingest", files={"file": f})
-
-print(response.json())
-```
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **Redis Connection Error**
-   ```bash
-   # Check Redis status
-   redis-cli ping
-   
-   # Restart Redis
-   redis-server
-   ```
-
-2. **High Memory Usage**
-   ```bash
-   # Clear cache
-   curl -X DELETE http://localhost:8000/cache/clear
-   ```
-
-3. **Slow Response Times**
-   ```bash
-   # Check cache hit ratio
-   curl http://localhost:8000/cache/stats
-   ```
-
-### Performance Optimization
-
-1. **Increase Cache TTL** for historical data
-2. **Scale Redis** with clustering
-3. **Add more workers** for concurrent processing
-4. **Optimize chunk sizes** for better retrieval
-
-## 📝 API Documentation
-
-Once the application is running, visit:
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+- API keys stored in environment variables
+- Rate limiting prevents abuse
+- Input validation on all user inputs
+- Error handling prevents information leakage
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests
+4. Add tests if applicable
 5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🔗 Links
+## 🆘 Troubleshooting
 
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Redis Documentation](https://redis.io/documentation)
-- [LangChain Documentation](https://python.langchain.com/)
-- [Google Gemini API](https://ai.google.dev/)
-- [LangSmith](https://smith.langchain.com/)
+### Common Issues
 
-## 📞 Support
+1. **API Key Errors**:
+   - Ensure all required API keys are set in `.env`
+   - Check API key validity and quotas
 
-For questions or issues:
-1. Check the troubleshooting section
-2. Review the API documentation
-3. Check application logs
-4. Open an issue on GitHub 
+2. **Rate Limiting**:
+   - Wait for the rate limit to reset
+   - Consider upgrading API plans for higher limits
+
+3. **ChromaDB Issues**:
+   - Delete `./chroma_db` directory to reset vector store
+   - Ensure sufficient disk space
+
+4. **Streamlit Issues**:
+   - Clear browser cache
+   - Restart the Streamlit server
+
+### Getting Help
+
+- Check the console for error messages
+- Review the LangSmith dashboard for detailed traces
+- Open an issue on GitHub with error details
+
+## 🚀 Future Enhancements
+
+- [ ] Portfolio tracking and management
+- [ ] Technical analysis indicators
+- [ ] Multi-language support
+- [ ] Mobile-responsive design
+- [ ] Real-time price alerts
+- [ ] Integration with more data sources
+- [ ] Advanced charting capabilities
+
+---
+
+**Disclaimer**: This application is for educational and informational purposes only. It should not be considered as financial advice. Always consult with a qualified financial advisor before making investment decisions. 
