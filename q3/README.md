@@ -1,354 +1,232 @@
-# Financial Intelligence RAG System
+# Smart Code Tutor with AI Agent
 
-A production-scale Financial Intelligence RAG (Retrieval-Augmented Generation) System designed to handle concurrent queries on corporate financial reports and earnings data with Redis caching and OpenAI API integration.
+A full-stack code interpreter with a web-based code editor that can execute Python & JavaScript code and provide intelligent, step-by-step explanations using RAG-retrieved documentation and real-time streaming.
 
-## 🚀 Features
+## Features
 
-### Core Capabilities
-- **Financial Document Processing**: Enhanced PDF and CSV parsing for financial reports
-- **Intelligent Query Processing**: Financial-specific RAG pipeline with Google Gemini
-- **Real-time Caching**: Redis-based caching with TTL management (1h real-time, 24h historical)
-- **Concurrent Request Handling**: Supports 200+ concurrent users with <2s response time
-- **Background Processing**: Celery-based async document ingestion and analysis
-- **Performance Monitoring**: LangSmith integration and Prometheus metrics
+- **Code Editor**: Monaco Editor with syntax highlighting for Python and JavaScript
+- **Code Execution**: Sandboxed code execution using E2B SDK
+- **AI Explanations**: Intelligent code analysis using LangChain + LangGraph + Groq
+- **Document Upload**: RAG pipeline with ChromaDB for context-aware explanations
+- **Real-time Streaming**: WebSocket-based communication for live updates
+- **Modern UI**: Beautiful, responsive interface built with Next.js and Tailwind CSS
 
-### Production Features
-- **Rate Limiting**: Per-API-key rate limiting and request throttling
-- **Load Balancing**: Async FastAPI with connection pooling
-- **Monitoring**: Real-time system metrics and performance dashboards
-- **Scalability**: Horizontal scaling support with Redis cluster
-- **Security**: JWT authentication, CORS, and input validation
+## Tech Stack
 
-## 📋 Requirements
+### Backend
+- **FastAPI**: Async web framework with WebSocket support
+- **LangChain**: Document processing and RAG pipeline
+- **LangGraph**: AI agent workflow orchestration
+- **Groq**: Large language model for explanations
+- **ChromaDB**: Vector database for document storage
+- **E2B SDK**: Sandboxed code execution
+- **HuggingFace**: Embeddings model
 
-- Python 3.8+
-- Redis Server
-- Google Gemini API Key
-- LangSmith API Key (optional)
-- ChromaDB (local or cloud)
+### Frontend
+- **Next.js 14**: React framework with App Router
+- **Tailwind CSS**: Utility-first CSS framework
+- **Monaco Editor**: VS Code editor in the browser
+- **Lucide React**: Icon library
+- **WebSocket**: Real-time communication
 
-## 🛠️ Installation
-
-### 1. Clone and Setup
-```bash
-git clone <repository-url>
-cd financial-rag-system
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### 2. Environment Configuration
-```bash
-# Copy the example environment file
-cp backend/env_example.txt .env
-
-# Edit .env with your configuration
-# Required settings:
-# - GOOGLE_API_KEY: Your Google Gemini API key
-# - REDIS_URL: Redis connection string
-# - LANGSMITH_API_KEY: LangSmith API key (optional)
-```
-
-### 3. Start Redis Server
-```bash
-# Option 1: Docker
-docker run -d -p 6379:6379 redis:alpine
-
-# Option 2: Local installation
-redis-server
-```
-
-### 4. Start the Application
-```bash
-# Development mode
-python backend/main.py
-
-# Production mode
-gunicorn backend.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
-```
-
-### 5. Start Background Workers (Optional)
-```bash
-# Start Celery worker
-celery -A backend.celery_app worker --loglevel=info
-
-# Start Celery beat (for scheduled tasks)
-celery -A backend.celery_app beat --loglevel=info
-```
-
-## 📊 API Endpoints
-
-### Core Endpoints
-
-#### Query Financial Data
-```http
-POST /query
-Content-Type: application/json
-
-{
-  "question": "What is Apple's revenue for 2023?",
-  "use_cache": true,
-  "is_realtime": true
-}
-```
-
-#### Financial Metrics
-```http
-POST /financial-metrics
-Content-Type: application/json
-
-{
-  "company": "Apple",
-  "metrics": ["revenue", "profit", "assets", "liabilities"]
-}
-```
-
-#### Company Comparison
-```http
-POST /company-comparison
-Content-Type: application/json
-
-{
-  "companies": ["Apple", "Microsoft", "Google"],
-  "metrics": ["revenue", "profit_margin", "market_cap"]
-}
-```
-
-#### Document Ingestion
-```http
-POST /ingest
-Content-Type: multipart/form-data
-
-file: <financial_report.pdf>
-```
-
-### Monitoring Endpoints
-
-#### Health Check
-```http
-GET /health
-```
-
-#### Cache Statistics
-```http
-GET /cache/stats
-```
-
-#### Prometheus Metrics
-```http
-GET /metrics
-```
-
-## 🗂️ Project Structure
+## Project Structure
 
 ```
-financial-rag-system/
+W5D2_q3/
 ├── backend/
-│   ├── cache/
-│   │   └── redis_client.py      # Redis caching layer
-│   ├── config.py                # Configuration management
-│   ├── main.py                  # FastAPI application
-│   ├── rag_pipeline.py          # RAG processing pipeline
-│   ├── ingest.py                # Document ingestion
-│   ├── chroma_client.py         # Vector database client
-│   ├── celery_app.py            # Celery configuration
-│   ├── tasks.py                 # Background tasks
-│   ├── load_testing.py          # Load testing script
-│   └── env_example.txt          # Environment configuration
-├── ui/
-│   └── app.py                   # Streamlit UI
-├── requirements.txt             # Python dependencies
-└── README.md                    # This file
+│   ├── main.py                 # FastAPI application
+│   ├── config.py              # Configuration management
+│   ├── requirements.txt       # Python dependencies
+│   ├── models/
+│   │   └── schemas.py         # Pydantic models
+│   └── services/
+│       ├── code_executor.py   # E2B code execution
+│       ├── document_manager.py # LangChain document processing
+│       ├── rag_service.py     # ChromaDB RAG pipeline
+│       └── langgraph_agent.py # LangGraph AI agent
+├── frontend/
+│   ├── app/
+│   │   ├── layout.tsx         # Root layout
+│   │   ├── page.tsx           # Main page component
+│   │   └── globals.css        # Global styles
+│   ├── package.json           # Node.js dependencies
+│   ├── next.config.js         # Next.js configuration
+│   ├── tailwind.config.js     # Tailwind CSS configuration
+│   └── tsconfig.json          # TypeScript configuration
+└── README.md                  # This file
 ```
 
-## 🧪 Testing
+## Setup Instructions
 
-### Load Testing
-```bash
-# Run load test with 200 concurrent users for 10 minutes
-python backend/load_testing.py
+### Prerequisites
 
-# Or use Locust directly
-locust -f backend/load_testing.py --host http://localhost:8000 --users 200 --spawn-rate 10 --run-time 10m
-```
+1. **Python 3.8+** and **Node.js 18+**
+2. **Groq API Key** - Get from [Groq Console](https://console.groq.com/)
+3. **E2B API Key** - Get from [E2B Platform](https://e2b.dev/)
 
-### Unit Tests
-```bash
-# Run tests
-pytest
+### Backend Setup
 
-# Run with coverage
-pytest --cov=backend
-```
+1. **Navigate to backend directory**:
+   ```bash
+   cd backend
+   ```
 
-## 📈 Performance Targets
+2. **Create virtual environment**:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-- **Response Time**: < 2 seconds average
-- **Concurrent Users**: 200+ simultaneous users
-- **Cache Hit Ratio**: > 70%
-- **Uptime**: 99.9%
-- **Error Rate**: < 5%
+3. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## 🔧 Configuration
+4. **Set environment variables**:
+   ```bash
+   # Create .env file
+   echo "GROQ_API_KEY=your_groq_api_key_here" > .env
+   echo "E2B_API_KEY=your_e2b_api_key_here" >> .env
+   ```
 
-### Environment Variables
+5. **Run the backend**:
+   ```bash
+   python main.py
+   ```
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `GOOGLE_API_KEY` | Google Gemini API key | Required |
-| `REDIS_URL` | Redis connection string | `redis://localhost:6379/0` |
-| `LANGSMITH_API_KEY` | LangSmith monitoring key | Optional |
-| `RATE_LIMIT_REQUESTS` | Requests per hour | 100 |
-| `MAX_CONCURRENT_REQUESTS` | Max concurrent requests | 200 |
-| `CACHE_TTL_REALTIME` | Real-time cache TTL (seconds) | 3600 |
-| `CACHE_TTL_HISTORICAL` | Historical cache TTL (seconds) | 86400 |
+   The backend will be available at `http://localhost:8000`
 
-### Redis Configuration
+### Frontend Setup
 
-```bash
-# Redis databases used:
-# 0: Main cache
-# 1: Celery broker
-# 2: Celery results
-```
+1. **Navigate to frontend directory**:
+   ```bash
+   cd frontend
+   ```
 
-## 🚀 Deployment
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-### Docker Deployment
-```bash
-# Build image
-docker build -t financial-rag-system .
+3. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
 
-# Run with docker-compose
-docker-compose up -d
-```
+   The frontend will be available at `http://localhost:3000`
 
-### Production Deployment
-```bash
-# Install production dependencies
-pip install gunicorn
+## Usage
 
-# Start with multiple workers
-gunicorn backend.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
+1. **Open the application** in your browser at `http://localhost:3000`
 
-# Start with Celery workers
-celery -A backend.celery_app worker --loglevel=info --concurrency=4
-```
+2. **Select a language** (Python or JavaScript) from the dropdown
 
-## 📊 Monitoring
+3. **Write or modify code** in the Monaco Editor
 
-### Prometheus Metrics
-- Request count and duration
-- Cache hit/miss ratios
-- Active connections
-- Query processing time
+4. **Upload documentation** (optional) using the "Upload Doc" button to enhance AI explanations
 
-### LangSmith Integration
-- Request tracing
-- Performance monitoring
-- Error tracking
-- Response quality metrics
+5. **Run the code** by clicking the "Run Code" button
 
-### Health Checks
-- Application health: `GET /health`
-- Cache statistics: `GET /cache/stats`
-- Metrics endpoint: `GET /metrics`
+6. **View results** in the console output and AI explanation panels
 
-## 🔍 Usage Examples
+## API Endpoints
 
-### Basic Financial Query
-```python
-import requests
+### REST Endpoints
 
-response = requests.post("http://localhost:8000/query", json={
-    "question": "What was Apple's revenue in Q3 2023?",
-    "use_cache": True
-})
+- `GET /` - Health check
+- `GET /health` - Service status
+- `POST /upload-document` - Upload documentation for RAG
 
-print(response.json())
-```
+### WebSocket Endpoints
 
-### Company Comparison
-```python
-response = requests.post("http://localhost:8000/company-comparison", json={
-    "companies": ["Apple", "Microsoft"],
-    "metrics": ["revenue", "profit_margin"]
-})
+- `WS /ws/{client_id}` - Real-time communication
 
-print(response.json())
-```
+#### WebSocket Message Types
 
-### Document Upload
-```python
-with open("financial_report.pdf", "rb") as f:
-    response = requests.post("http://localhost:8000/ingest", files={"file": f})
+**Client → Server:**
+- `run_code`: Execute code
+- `ping`: Keep-alive
 
-print(response.json())
-```
+**Server → Client:**
+- `execution_output`: Streaming code output
+- `execution_complete`: Execution finished
+- `rag_explanation`: AI explanation chunks
+- `status`: Status updates
+- `execution_error`: Error messages
 
-## 🐛 Troubleshooting
+## Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `GROQ_API_KEY` | Groq API key for LLM | Yes |
+| `E2B_API_KEY` | E2B API key for code execution | Yes |
+| `DEBUG` | Enable debug mode | No |
+| `LOG_LEVEL` | Logging level (INFO, DEBUG, ERROR) | No |
+| `CHROMA_PERSIST_DIR` | ChromaDB storage directory | No |
+| `UPLOAD_DIR` | File upload directory | No |
+| `MAX_FILE_SIZE` | Maximum file upload size in bytes | No |
+
+## Development
+
+### Adding New Languages
+
+1. **Update the backend** `code_executor.py`:
+   - Add language to `sandbox_templates`
+   - Implement execution method
+
+2. **Update the frontend** `page.tsx`:
+   - Add language option to dropdown
+   - Add sample code template
+
+### Extending AI Capabilities
+
+1. **Modify the LangGraph workflow** in `langgraph_agent.py`:
+   - Add new nodes for additional analysis
+   - Implement custom prompts
+   - Add new data sources
+
+2. **Enhance RAG pipeline** in `rag_service.py`:
+   - Add new document loaders
+   - Implement custom embeddings
+   - Add metadata filtering
+
+## Troubleshooting
 
 ### Common Issues
 
-1. **Redis Connection Error**
-   ```bash
-   # Check Redis status
-   redis-cli ping
-   
-   # Restart Redis
-   redis-server
-   ```
+1. **WebSocket Connection Failed**
+   - Ensure backend is running on port 8000
+   - Check CORS settings in `main.py`
 
-2. **High Memory Usage**
-   ```bash
-   # Clear cache
-   curl -X DELETE http://localhost:8000/cache/clear
-   ```
+2. **Code Execution Timeout**
+   - Check E2B API key and quota
+   - Verify sandbox templates are available
 
-3. **Slow Response Times**
-   ```bash
-   # Check cache hit ratio
-   curl http://localhost:8000/cache/stats
-   ```
+3. **AI Explanation Not Working**
+   - Verify Groq API key is valid
+   - Check if documents are uploaded for RAG
 
-### Performance Optimization
+4. **Monaco Editor Not Loading**
+   - Ensure all frontend dependencies are installed
+   - Check browser console for errors
 
-1. **Increase Cache TTL** for historical data
-2. **Scale Redis** with clustering
-3. **Add more workers** for concurrent processing
-4. **Optimize chunk sizes** for better retrieval
+### Logs
 
-## 📝 API Documentation
+Backend logs are available in the console where you run `python main.py`.
+Frontend logs are available in the browser developer console.
 
-Once the application is running, visit:
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests
+4. Test thoroughly
 5. Submit a pull request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
-## 🔗 Links
+## Support
 
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Redis Documentation](https://redis.io/documentation)
-- [LangChain Documentation](https://python.langchain.com/)
-- [Google Gemini API](https://ai.google.dev/)
-- [LangSmith](https://smith.langchain.com/)
-
-## 📞 Support
-
-For questions or issues:
-1. Check the troubleshooting section
-2. Review the API documentation
-3. Check application logs
-4. Open an issue on GitHub 
+For issues and questions, please create an issue in the repository or contact the development team. 
